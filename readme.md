@@ -46,5 +46,17 @@ go build wiki.go
 ./wiki
 ```
 the display will look like so
-![alt text](/img/image.png)
+![alt text](/img/image1.png)
 
+## net/http 
+### interlude
+previously we have display the sample page, now we are able to apply it to the network page, using personal network route  
+
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+}
+```
+adding a `handling` function to the file as well as `log` and `net/http` go library. to enable it we use the `apache tomcat` webserver to display the page. enter `http://localhost:8080/monkeys` to a browser.
+
+![alt text](/img/image2.png)
