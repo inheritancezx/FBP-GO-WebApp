@@ -56,7 +56,33 @@ previously we have display the sample page, now we are able to apply it to the n
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
 }
+
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 ```
 adding a `handling` function to the file as well as `log` and `net/http` go library. to enable it we use the `apache tomcat` webserver to display the page. enter `http://localhost:8080/monkeys` to a browser.
 
 ![alt text](/img/image2.png)
+
+### wiki app
+as now we can add a new route and display by adding a new `handler` func as well as storing the data to a `test.txt`, u might as well simply add `hello world` in the .txt
+
+changes in `wiki.go`
+```go
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, _ := loadPage(title)
+	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+}
+
+func main() {
+	... 
+	http.HandleFunc("/view/", viewHandler)
+    ...
+}
+```
+
+the display shall be:
+![alt text](/img/image3.png)
