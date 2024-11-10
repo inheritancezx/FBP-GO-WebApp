@@ -86,3 +86,83 @@ func main() {
 
 the display shall be:
 ![alt text](/img/image3.png)
+
+### edit/save 
+a wiki page wont be perfect without any functionality to edit and save. to add these features are adding up several new functions, a render display, as well as the template of the view using `html`
+
+### functions
+```go
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/edit/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	renderTemplate(w, "edit", p)
+}
+
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/save/"):]
+	body := r.FormValue("body")
+	p := &Page{Title: title, Body: []byte(body)}
+	p.save()
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+
+...
+
+func main() {
+    ...
+	http.HandleFunc("/edit/", editHandler)
+	http.HandleFunc("/save/", saveHandler)
+    ...
+}
+```
+
+we will need new functions `edit` and `save` handler to make the functionality itself. then adding the page call in the main function. Either then new functions, the `viewHandler` func will also face changes
+
+```go
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+```
+
+### render func
+to enable the ability of the system to display the edit and save, we will need a render to display the `html` template, there is where a render func comes in handy
+
+```go
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	t, _ := template.ParseFiles(tmpl + ".html")
+	t.Execute(w, p)
+}
+```
+
+### html
+and lastly will be the html files itself. in this webApp, there will be 2 `.html` files, namely `edit.html` and `view.html`. both of them are templates for each of their purposes
+
+- `edit.html`
+```html
+<h1>Editing {{.Title}}</h1>
+
+<form action="/save/{{.Title}}" method="POST">
+    <div><textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea></div>
+    <div><input type="submit" value="Save"></div>
+</form>
+```
+
+- `view.html`
+```html
+<h1>{{.Title}}</h1>
+
+<p>[<a href="/edit/{{.Title}}">edit</a>]</p>
+<div>{{printf "%s" .Body}}</div>
+```
+
+the display shall look like this:
+![alt text](image.png)
