@@ -165,4 +165,8 @@ and lastly will be the html files itself. in this webApp, there will be 2 `.html
 ```
 
 the display shall look like this:
-![alt text](image.png)
+<p align="center">
+  <img src="/img/image4.png" alt="Image 4" width="45%">
+  <img src="/img/image5.png" alt="Image 5" width="45%">
+</p>
+
