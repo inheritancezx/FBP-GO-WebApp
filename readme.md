@@ -119,19 +119,7 @@ func main() {
 }
 ```
 
-we will need new functions `edit` and `save` handler to make the functionality itself. then adding the page call in the main function. Either then new functions, the `viewHandler` func will also face changes
-
-```go
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/view/"):]
-	p, err := loadPage(title)
-	if err != nil {
-		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
-		return
-	}
-	renderTemplate(w, "view", p)
-}
-```
+we will need new functions `edit` and `save` handler to make the functionality itself. then adding the page call in the main function. 
 
 ### render func
 to enable the ability of the system to display the edit and save, we will need a render to display the `html` template, there is where a render func comes in handy
@@ -169,6 +157,23 @@ the display shall look like this:
   <img src="/img/image4.png" alt="Image 4" width="45%">
   <img src="/img/image5.png" alt="Image 5" width="45%">
 </p>
+
+### 404 not found
+when we hit a page that doesn't exist, it shall display a not found page landing, this will need changes in the `view` handler 
+```go
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+```
+
+and this will look like so:
+![alt text](/img/image6.png)
 
 ## error handling and validation
 to handle errors in the prgram, we will add these lines of code to the `save` handler and `render` func. However, the render func shall face slight differences with additional template caching method (to simplify the code structures)
