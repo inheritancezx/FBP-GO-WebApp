@@ -170,3 +170,101 @@ the display shall look like this:
   <img src="/img/image5.png" alt="Image 5" width="45%">
 </p>
 
+## error handling and validation
+to handle errors in the prgram, we will add these lines of code to the `save` handler and `render` func. However, the render func shall face slight differences with additional template caching method (to simplify the code structures)
+
+- `saveHandler`
+```go
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+    title := r.URL.Path[len("/save/"):]
+    body := r.FormValue("body")
+    p := &Page{Title: title, Body: []byte(body)}
+    err := p.save()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+```
+
+- `render`
+```go
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+
+...
+...
+
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+    err := templates.ExecuteTemplate(w, tmpl+".html", p)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+    }
+}
+```
+first declare a variable namely `templates` then arrange the `.html` files as the template accordingly to later on be a variable call in the function
+
+As for validaton, its slight differences will be confirming wether a title of the page is correct or not. To do so, we will need a new `getTitle` func and calling that func within ot handlers.
+
+```go
+func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
+    m := validPath.FindStringSubmatch(r.URL.Path)
+    if m == nil {
+        http.NotFound(w, r)
+        return "", errors.New("invalid Page Title")
+    }
+    return m[2], nil // The title is the second subexpression.
+}
+```
+
+to call the func, will be directing them directly to an error management branch:
+- `view`
+```go
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+    title, err := getTitle(w, r)
+    if err != nil {
+        return
+    }
+    p, err := loadPage(title)
+    if err != nil {
+        http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+        return
+    }
+    renderTemplate(w, "view", p)
+}
+```
+
+- `edit`
+```go
+func editHandler(w http.ResponseWriter, r *http.Request) {
+    title, err := getTitle(w, r)
+    if err != nil {
+        return
+    }
+    p, err := loadPage(title)
+    if err != nil {
+        p = &Page{Title: title}
+    }
+    renderTemplate(w, "edit", p)
+}
+```
+
+- `save`
+```go
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+    title, err := getTitle(w, r)
+    if err != nil {
+        return
+    }
+    body := r.FormValue("body")
+    p := &Page{Title: title, Body: []byte(body)}
+    err = p.save()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+```
+
+
